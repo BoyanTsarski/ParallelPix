@@ -57,8 +57,15 @@ updates to the UI, so the window can always be moved, scrolled and clicked.
 |-------------|---------|------------|
 | **Job queue** (`Queue<ResizeJob>`) | All workers take jobs from it | Every `Dequeue` is done inside `lock (_queueLock)`, so two workers can never get the same image. |
 | **Results list** (`List<ResizeResult>`) | All workers add results; the UI reads them | Every `Add` and every read/copy is done inside `lock (_resultsLock)`. |
-| **Counters** (processed, errors) | All workers increase them | Updated inside the results lock (or with `Interlocked.Increment`). |
+| **Counters** (processed, errors) | All workers increase them | Updated inside the same `lock (_resultsLock)` as the results list. |
 | **Worker status array** | Each worker writes its own status, the UI reads all | Each worker only writes to its own slot; the UI reads under a lock. |
+
+Each lock is a separate object of the .NET `Lock` class:
+
+```csharp
+private readonly Lock _queueLock = new();
+private readonly Lock _resultsLock = new();
+```
 
 ### Possible problems and how I avoid them
 - **Race condition:** without the lock, two workers could check `queue.Count > 0` at the same time and both

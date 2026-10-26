@@ -426,3 +426,7 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# Build output folders (required by the assignment)
+[Bb]in/
+[Oo]bj/
